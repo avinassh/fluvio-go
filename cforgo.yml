@@ -1,0 +1,27 @@
+---
+GENERATOR:
+  PackageName: fluvio_cgo
+  Options:
+    SafeStrings: true
+  Includes:
+    - ../src/fluvio_go.h
+  FlagGroups:
+    - {name: LDFLAGS, flags: ["-L../target/debug -lfluvio_go"]}
+
+PARSER:
+  IncludePaths:
+    - /usr/include
+#    - ./target/debug
+#    - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
+#    - /Library/Developer/CommandLineTools/usr/include/c++/v1/
+#    - /Library/Developer/CommandLineTools/usr/lib/clang/11.0.0/include
+  SourcesPaths:
+    - ./src/fluvio_go.h
+
+TRANSLATOR:
+  Rules:
+    function:
+      - {action: accept, from: "^fl_"}
+    post-global:
+      - {transform: export}
+      - {load: snakecase}

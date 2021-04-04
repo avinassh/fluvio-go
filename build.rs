@@ -3,6 +3,8 @@ extern crate cbindgen;
 use std::env;
 
 fn main() {
+    // we want this to be run everytime
+    println!("cargo:rerun-if-changed=src/");
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     cbindgen::Builder::new()
