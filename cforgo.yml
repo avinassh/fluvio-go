@@ -24,6 +24,9 @@ TRANSLATOR:
       - {action: accept, from: "connect"}
     global:
       - {action: accept, from: "(?i)^Fl"}
+      - {action: accept, from: "(?i)^Topic"}
+      - {action: accept, from: "get_topic_producer"}
+      - {action: accept, from: "^send"}
     post-global:
       - {transform: export}
       - {load: snakecase}
