@@ -6,5 +6,6 @@ import (
 )
 
 func main() {
-	fmt.Println(cgo.FlAddition(5, 10))
+	gg := cgo.Connect()
+	fmt.Println(gg)
 }

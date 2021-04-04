@@ -21,7 +21,9 @@ PARSER:
 TRANSLATOR:
   Rules:
     function:
-      - {action: accept, from: "^fl_"}
+      - {action: accept, from: "connect"}
+    global:
+      - {action: accept, from: "(?i)^Fl"}
     post-global:
       - {transform: export}
       - {load: snakecase}

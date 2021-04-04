@@ -3,6 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void fl_hello_world(void);
+typedef struct Fluvio Fluvio;
 
-uint32_t fl_addition(uint32_t a, uint32_t b);
+struct Fluvio *connect(void);
