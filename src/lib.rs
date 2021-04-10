@@ -1,65 +1,81 @@
 extern crate libc;
 
-use fluvio::{Fluvio as _Fluvio, TopicProducer as _TopicProducer, PartitionConsumer};
+use fluvio::{Fluvio, TopicProducer};
 use fluvio_future::task::run_block_on;
 use libc::c_char;
 use std::ffi::CStr;
 
-
-pub struct TopicProducer {
-    inner: _TopicProducer,
+pub struct TopicProducerWrapper {
+    inner: TopicProducer,
 }
 
-impl TopicProducer {
-    fn send(&mut self, value: &str) {
-        run_block_on(self.inner.send("from golang", value)).expect("failed to send values");
+impl TopicProducerWrapper {
+    fn send<K, V>(&self, key: K, value: V)
+    where
+        K: Into<Vec<u8>>,
+        V: Into<Vec<u8>>,
+    {
+        run_block_on(self.inner.send(key, value)).expect("failed to send values");
     }
 }
 
-pub struct Fluvio {
-    inner: _Fluvio,
+pub struct FluvioWrapper {
+    inner: Fluvio,
 }
 
-impl Fluvio {
+impl FluvioWrapper {
     fn new() -> Self {
-
-        let p = PartitionConsumer;
-
-        Fluvio {
-            inner: run_block_on(_Fluvio::connect()).expect("failed to connect to fluvio"),
+        FluvioWrapper {
+            inner: run_block_on(Fluvio::connect()).expect("failed to connect to fluvio"),
         }
     }
-    fn get_topic_producer(&mut self) -> TopicProducer {
-        TopicProducer {
-            inner: run_block_on(self.inner.topic_producer("chinni"))
+    fn topic_producer<S: Into<String>>(&mut self, topic: S) -> TopicProducerWrapper {
+        TopicProducerWrapper {
+            inner: run_block_on(self.inner.topic_producer(topic))
                 .expect("failed to get the topic producer"),
         }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn fluvio_connect() -> *mut Fluvio {
-    Box::into_raw(Box::new(Fluvio::new()))
+pub extern "C" fn fluvio_connect() -> *mut FluvioWrapper {
+    Box::into_raw(Box::new(FluvioWrapper::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn fluvio_topic_producer(ptr: *mut Fluvio) -> *mut TopicProducer {
-    let fl = unsafe {
+pub extern "C" fn fluvio_topic_producer(
+    ptr: *mut FluvioWrapper,
+    topic_ptr: *const c_char,
+) -> *mut TopicProducerWrapper {
+    let f = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
-    Box::into_raw(Box::new(fl.get_topic_producer()))
+    let topic = unsafe {
+        assert!(!topic_ptr.is_null());
+        CStr::from_ptr(topic_ptr).to_str().unwrap()
+    };
+    Box::into_raw(Box::new(f.topic_producer(topic)))
 }
 
+// TODO: change types of key and value to be bytes
 #[no_mangle]
-pub extern "C" fn fluvio_topic_producer_send(ptr: *mut TopicProducer, value_ptr: *const c_char) {
+pub extern "C" fn topic_producer_send(
+    ptr: *mut TopicProducerWrapper,
+    key_ptr: *const c_char,
+    value_ptr: *const c_char,
+) {
     let tp = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
+    };
+    let key = unsafe {
+        assert!(!key_ptr.is_null());
+        CStr::from_ptr(key_ptr).to_str().unwrap()
     };
     let value = unsafe {
         assert!(!value_ptr.is_null());
         CStr::from_ptr(value_ptr).to_str().unwrap()
     };
-    tp.send(value);
+    tp.send(key, value);
 }

@@ -1,11 +1,8 @@
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 gen:
-	rm -rf fluvio_cgo
-	mkdir "fluvio_cgo"
 	cargo build
-	# c-for-go --ccincl --ccdefs cforgo.yml
-	c-for-go --ccincl cforgo.yml
+	mv target/debug/libfluvio_go.dylib src/libfluvio_go.dylib
 
 build: gen
 	go build

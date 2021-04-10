@@ -3,12 +3,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct Fluvio Fluvio;
+typedef struct FluvioWrapper FluvioWrapper;
 
-typedef struct TopicProducer TopicProducer;
+typedef struct TopicProducerWrapper TopicProducerWrapper;
 
-struct Fluvio *fluvio_connect(void);
+struct FluvioWrapper *fluvio_connect(void);
 
-struct TopicProducer *fluvio_topic_producer(struct Fluvio *ptr);
+struct TopicProducerWrapper *fluvio_topic_producer(struct FluvioWrapper *ptr,
+                                                   const char *topic_ptr);
 
-void fluvio_topic_producer_send(struct TopicProducer *ptr, const char *value_ptr);
+void topic_producer_send(struct TopicProducerWrapper *ptr,
+                         const char *key_ptr,
+                         const char *value_ptr);
