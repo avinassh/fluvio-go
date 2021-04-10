@@ -9,3 +9,6 @@ build: gen
 
 run: build
 	./fluvio-go
+
+clean:
+	rm src/libfluvio_go.dylib
