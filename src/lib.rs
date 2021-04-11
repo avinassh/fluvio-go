@@ -29,12 +29,12 @@ impl Drop for FluvioErrorWrapper {
 }
 
 #[no_mangle]
-pub extern "C" fn custom_error_new() -> *mut FluvioErrorWrapper {
+pub extern "C" fn fluvio_error_new() -> *mut FluvioErrorWrapper {
     Box::into_raw(Box::new(FluvioErrorWrapper::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn custom_error_free(err_ptr: *mut FluvioErrorWrapper) {
+pub extern "C" fn fluvio_error_free(err_ptr: *mut FluvioErrorWrapper) {
     if err_ptr.is_null() {
         return;
     }

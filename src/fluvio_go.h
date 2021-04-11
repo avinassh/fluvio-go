@@ -11,9 +11,9 @@ typedef struct FluvioErrorWrapper {
   char *msg;
 } FluvioErrorWrapper;
 
-struct FluvioErrorWrapper *custom_error_new(void);
+struct FluvioErrorWrapper *fluvio_error_new(void);
 
-void custom_error_free(struct FluvioErrorWrapper *err_ptr);
+void fluvio_error_free(struct FluvioErrorWrapper *err_ptr);
 
 struct FluvioWrapper *fluvio_connect(struct FluvioErrorWrapper *err_ptr);
 
