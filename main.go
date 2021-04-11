@@ -23,7 +23,7 @@ func main() {
 	for i := 1; i <= 10; i++ {
 		val := fmt.Sprintf("(from Go) %d (%s)", i, time.Now().String())
 		fmt.Println("Sending: ", val)
-		err = t.Send(fmt.Sprintf("%d", i), val)
+		err = t.SendString(fmt.Sprintf("%d", i), val)
 		fatalIfErr("error while sending", err)
 		break
 	}

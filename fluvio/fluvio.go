@@ -44,35 +44,17 @@ func (f *Fluvio) TopicProducer(topic string) (*TopicProducer, error) {
 	}, nil
 }
 
-func (t *TopicProducer) Send(key, value string) error {
-	keyPtr := C.CString(key)
-	defer C.free(unsafe.Pointer(keyPtr))
-	valuePtr := C.CString(value)
-	defer C.free(unsafe.Pointer(valuePtr))
+func (t *TopicProducer) Send(key, value []byte) error {
 	errPtr := C.fluvio_error_new()
 	defer C.fluvio_error_free(errPtr)
-	C.topic_producer_send(t.wrapper, keyPtr, valuePtr, errPtr)
+	C.topic_producer_send(t.wrapper, (*C.uint8_t)(unsafe.Pointer(&key[0])), C.size_t(len(key)),
+		(*C.uint8_t)(unsafe.Pointer(&value[0])), C.size_t(len(value)), errPtr)
 	if errPtr.msg == nil {
 		return nil
 	}
 	return NewFluvioError(C.GoString(errPtr.msg))
 }
 
-// func (t *TopicProducer) SendWithErr(key, value string) {
-// 	keyPtr := C.CString(key)
-// 	defer C.free(unsafe.Pointer(keyPtr))
-// 	valuePtr := C.CString(value)
-// 	defer C.free(unsafe.Pointer(valuePtr))
-//
-// 	// by allocating memory for struct
-// 	errPtr := (*C.FluvioErrorWrapper)(C.calloc(C.size_t(1), (C.size_t)(unsafe.Sizeof([1]C.FluvioErrorWrapper{}))))
-// 	var errPtr C.FluvioErrorWrapper
-// 	errPtr = (*C.FluvioErrorWrapper)(unsafe.Pointer(new(C.FluvioErrorWrapper)))
-//
-// 	errPtr := C.CString("")
-// 	fmt.Println(errPtr)
-// 	defer C.free(unsafe.Pointer(errPtr))
-// 	C.topic_producer_send(t.wrapper, keyPtr, valuePtr, errPtr)
-// 	fmt.Println(errPtr)
-// 	fmt.Println(C.GoString(errPtr))
-// }
+func (t *TopicProducer) SendString(key, value string) error {
+	return t.Send([]byte(key), []byte(value))
+}

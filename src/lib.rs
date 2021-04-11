@@ -1,9 +1,11 @@
 extern crate libc;
 
+use std::ffi::{CStr, CString};
+use std::slice;
+
 use fluvio::{Fluvio, FluvioError, TopicProducer};
 use fluvio_future::task::run_block_on;
-use libc::c_char;
-use std::ffi::{CStr, CString};
+use libc::{c_char, size_t};
 
 #[repr(C)]
 pub struct FluvioErrorWrapper {
@@ -119,12 +121,13 @@ pub extern "C" fn fluvio_topic_producer(
     }
 }
 
-// TODO: change types of key and value to be bytes
 #[no_mangle]
 pub extern "C" fn topic_producer_send(
     ptr: *mut TopicProducerWrapper,
-    key_ptr: *const c_char,
-    value_ptr: *const c_char,
+    key: *const u8,
+    key_len: size_t,
+    value: *const u8,
+    value_len: size_t,
     err_ptr: *mut FluvioErrorWrapper,
 ) {
     let tp = unsafe {
@@ -132,12 +135,12 @@ pub extern "C" fn topic_producer_send(
         &mut *ptr
     };
     let key = unsafe {
-        assert!(!key_ptr.is_null());
-        CStr::from_ptr(key_ptr).to_str().unwrap()
+        assert!(!key.is_null());
+        slice::from_raw_parts(key, key_len as usize)
     };
     let value = unsafe {
-        assert!(!value_ptr.is_null());
-        CStr::from_ptr(value_ptr).to_str().unwrap()
+        assert!(!value.is_null());
+        slice::from_raw_parts(value, value_len as usize)
     };
     if let Err(fluvio_error) = tp.send(key, value) {
         let err = unsafe {

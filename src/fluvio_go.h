@@ -22,6 +22,8 @@ struct TopicProducerWrapper *fluvio_topic_producer(struct FluvioWrapper *ptr,
                                                    struct FluvioErrorWrapper *err_ptr);
 
 void topic_producer_send(struct TopicProducerWrapper *ptr,
-                         const char *key_ptr,
-                         const char *value_ptr,
+                         const uint8_t *key,
+                         size_t key_len,
+                         const uint8_t *value,
+                         size_t value_len,
                          struct FluvioErrorWrapper *err_ptr);
