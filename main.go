@@ -16,7 +16,7 @@ func fatalIfErr(str string, err error) {
 }
 
 func main() {
-	f, err := fluvio.NewFluvio()
+	f, err := fluvio.Connect()
 	fatalIfErr("error while connecting", err)
 	t, err := f.TopicProducer("hello-go")
 	fatalIfErr("error while getting producer", err)

@@ -15,4 +15,6 @@ go:
 	./fluvio-go
 
 clean:
+	cargo clean
+	go clean
 	rm src/libfluvio_go.dylib

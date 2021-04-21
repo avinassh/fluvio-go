@@ -96,15 +96,15 @@ pub extern "C" fn fluvio_connect(err_ptr: *mut FluvioErrorWrapper) -> *mut Fluvi
 
 #[no_mangle]
 pub extern "C" fn fluvio_topic_producer(
-    ptr: *mut FluvioWrapper,
+    fluvio_ptr: *mut FluvioWrapper,
     topic_ptr: *const c_char,
     err_ptr: *mut FluvioErrorWrapper,
 ) -> *mut TopicProducerWrapper {
-    let f = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
+    let f: &mut FluvioWrapper = unsafe {
+        assert!(!fluvio_ptr.is_null());
+        &mut *fluvio_ptr
     };
-    let topic = unsafe {
+    let topic: &str = unsafe {
         assert!(!topic_ptr.is_null());
         CStr::from_ptr(topic_ptr).to_str().unwrap()
     };
@@ -123,22 +123,22 @@ pub extern "C" fn fluvio_topic_producer(
 
 #[no_mangle]
 pub extern "C" fn topic_producer_send(
-    ptr: *mut TopicProducerWrapper,
+    topic_ptr: *mut TopicProducerWrapper,
     key: *const u8,
     key_len: size_t,
     value: *const u8,
     value_len: size_t,
     err_ptr: *mut FluvioErrorWrapper,
 ) {
-    let tp = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
+    let tp: &mut TopicProducerWrapper = unsafe {
+        assert!(!topic_ptr.is_null());
+        &mut *topic_ptr
     };
-    let key = unsafe {
+    let key: &[u8] = unsafe {
         assert!(!key.is_null());
         slice::from_raw_parts(key, key_len as usize)
     };
-    let value = unsafe {
+    let value: &[u8] = unsafe {
         assert!(!value.is_null());
         slice::from_raw_parts(value, value_len as usize)
     };

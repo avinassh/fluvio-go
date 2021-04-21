@@ -17,11 +17,11 @@ void fluvio_error_free(struct FluvioErrorWrapper *err_ptr);
 
 struct FluvioWrapper *fluvio_connect(struct FluvioErrorWrapper *err_ptr);
 
-struct TopicProducerWrapper *fluvio_topic_producer(struct FluvioWrapper *ptr,
+struct TopicProducerWrapper *fluvio_topic_producer(struct FluvioWrapper *fluvio_ptr,
                                                    const char *topic_ptr,
                                                    struct FluvioErrorWrapper *err_ptr);
 
-void topic_producer_send(struct TopicProducerWrapper *ptr,
+void topic_producer_send(struct TopicProducerWrapper *topic_ptr,
                          const uint8_t *key,
                          size_t key_len,
                          const uint8_t *value,

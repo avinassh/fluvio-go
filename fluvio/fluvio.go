@@ -18,7 +18,7 @@ type TopicProducer struct {
 	wrapper *C.TopicProducerWrapper
 }
 
-func NewFluvio() (*Fluvio, error) {
+func Connect() (*Fluvio, error) {
 	errPtr := C.fluvio_error_new()
 	defer C.fluvio_error_free(errPtr)
 	f := C.fluvio_connect(errPtr)
