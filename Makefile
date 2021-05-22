@@ -1,8 +1,6 @@
-ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-
 gen:
-	cargo build
-	mv target/debug/libfluvio_go.dylib src/libfluvio_go.dylib
+	cargo build --release
+	mv target/release/libfluvio_go.* src/
 
 build: gen
 	go build
@@ -17,4 +15,4 @@ go:
 clean:
 	cargo clean
 	go clean
-	rm src/libfluvio_go.dylib
+	rm src/libfluvio_go.*
