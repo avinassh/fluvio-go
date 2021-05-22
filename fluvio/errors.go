@@ -1,6 +1,11 @@
 package fluvio
 
-import "strings"
+import (
+	"strings"
+)
+
+var ErrInvalidOffsetType = NewFluvioError("received invalid offset type")
+var ErrNoRecord = NewFluvioError("no records received")
 
 type FluvioError struct {
 	msg string

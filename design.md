@@ -1,4 +1,4 @@
-Go library for Fluvio
+## Design
 
 Rust FFI:
 - Every Fluvio struct has a wrapper (usually suffixed), like TopicProducer will have a TopicProducerWrapper
@@ -11,6 +11,3 @@ CGO:
 - All cgo related stuff are put in `fluvio` directory. No `C` is exposed outside of it
 - Every "wrapper" struct from FFI would have a struct here, sans the suffix
 - The struct have an internal field called `wrapper` which point to wrapper objects of Rust
-
-To run:
-    make run
