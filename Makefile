@@ -1,6 +1,6 @@
 gen:
-	cargo build
-	mv target/debug/libfluvio_go.dylib src/libfluvio_go.dylib
+	cargo build --release
+	mv target/release/libfluvio_go.* src/
 
 build: gen
 	go build
