@@ -9,10 +9,10 @@
 ### Quick Overview
 
 ```
-- fluvio            // contains all the Go library files
-- src               // all the rust files
+|- fluvio           // contains all the Go library files
+|- src              // all the rust files
     - lib.rs        // the C FFI wrapper over actual fluvio library
     - fluvio_go.h   // auto generated header file for FFI
     - libfluvio_go  // auto generated libray for FFI
-- build.rs          // cbindgen config file which specifies how to generate the FFI files 
+|- build.rs         // cbindgen config file which specifies how to generate the FFI files 
 ```

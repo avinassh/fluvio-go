@@ -33,7 +33,7 @@ func main() {
 		}
 	}()
 
-	// start the consumer
+	// create a consumer, for the same topic, on partition 0
 	partitionConsumer, err := fluvioClient.PartitionConsumer(topic, 0)
 	if err != nil {
 		fmt.Println("error while getting partition consumer", err)
@@ -41,6 +41,7 @@ func main() {
 	}
 	defer partitionConsumer.Close()
 
+	// create a stream object
 	stream, err := partitionConsumer.Stream(fluvio.NewOffsetFromBeginning(0))
 	if err != nil {
 		fmt.Println("error while getting stream on partition consumer", err)
@@ -48,6 +49,7 @@ func main() {
 	}
 	defer stream.Close()
 
+	// loop over streamer to fetch all the records
 	for i := 0; i <= 10; i++ {
 		r, _ := stream.Next()
 		fmt.Printf("Got record: key=%s, value=%s\n", string(r.Key), string(r.Value))
