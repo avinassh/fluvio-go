@@ -16,7 +16,7 @@ jobs:
         run: cargo build --release
       - uses: actions/upload-artifact@v2
         with:
-          name: libfluvio_go.so
+          name: libfluvio_go.so ${{ matrix.os }}
           path: |
             target/release/libfluvio_go.so
             target/release/libfluvio_go.dylib
