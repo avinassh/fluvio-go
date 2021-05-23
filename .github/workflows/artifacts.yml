@@ -17,8 +17,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.sha }}
+          release_name: Release ${{ github.sha }}
 
   build_release:
     name: Build and Release
@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Build project
         run: cargo build --release
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
-          ls target/release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: libfluvio_go.so
+          path: target/release/libfluvio_go.so
