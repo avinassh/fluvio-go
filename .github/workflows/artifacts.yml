@@ -3,7 +3,24 @@ name: release artifacts
 on: [push]
 
 jobs:
-  release:
+  create_release:
+    name: Create empty release
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.draft_release.outputs.id }}
+      html_url: ${{ steps.draft_release.outputs.html_url }}
+      upload_url: ${{ steps.draft_release.outputs.upload_url }}
+    steps:
+      - name: Draft release
+        id: draft_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+
+  build_release:
     name: Build and Release
     runs-on: ubuntu-latest
     steps:
