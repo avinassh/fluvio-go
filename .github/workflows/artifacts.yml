@@ -1,0 +1,23 @@
+name: release artifacts
+
+on: [push]
+
+jobs:
+  build_release:
+    name: Build and Release
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project
+        run: cargo build --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: libfluvio_go.so ${{ matrix.os }}
+          path: |
+            target/release/libfluvio_go.so
+            target/release/libfluvio_go.dylib
+          if-no-files-found: ignore
