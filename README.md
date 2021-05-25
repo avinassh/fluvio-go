@@ -7,7 +7,9 @@ Go binding for Fluvio streaming platform
 Make sure you have already installed [fluvio](https://github.com/infinyon/fluvio), it is up and running.
 
 ```shell
-go get github.com/avinassh/fluvio-go/fluvio
+# assuming all the dependencies are installed
+git clone github.com/avinassh/fluvio-go/fluvio.git
+make build
 ```
 
 ## Quick Start
