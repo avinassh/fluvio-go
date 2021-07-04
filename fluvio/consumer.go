@@ -9,6 +9,18 @@ import (
 	"unsafe"
 )
 
+func (f *Fluvio) ConsumerConfigWithWasmFilter(wasmFile string) (*ConsumerConfig, error) {
+	wasmFilePtr := C.CString(wasmFile)
+	defer C.free(unsafe.Pointer(wasmFilePtr))
+	errPtr := C.fluvio_error_new()
+	defer C.fluvio_error_free(errPtr)
+	config := C.consumer_config_with_wasm_filter(wasmFilePtr, errPtr)
+	if errPtr.msg != nil {
+		return nil, NewFluvioError(C.GoString(errPtr.msg))
+	}
+	return &ConsumerConfig{wrapper: config}, nil
+}
+
 func (f *Fluvio) PartitionConsumer(topic string, partition int32) (*PartitionConsumer, error) {
 	topicPtr := C.CString(topic)
 	defer C.free(unsafe.Pointer(topicPtr))
@@ -22,6 +34,10 @@ func (f *Fluvio) PartitionConsumer(topic string, partition int32) (*PartitionCon
 }
 
 func (pc *PartitionConsumer) Stream(offset Offset) (*PartitionConsumerStream, error) {
+	return pc.StreamWithConfig(offset, nil)
+}
+
+func (pc *PartitionConsumer) StreamWithConfig(offset Offset, config *ConsumerConfig) (*PartitionConsumerStream, error) {
 	errPtr := C.fluvio_error_new()
 	defer C.fluvio_error_free(errPtr)
 	var offsetPtr *C.OffsetWrapper
@@ -41,7 +57,12 @@ func (pc *PartitionConsumer) Stream(offset Offset) (*PartitionConsumerStream, er
 	default:
 		return nil, ErrInvalidOffsetType
 	}
-	stream := C.partition_consumer_stream(pc.wrapper, offsetPtr, errPtr)
+	var stream *C.PartitionConsumerStream
+	if config == nil {
+		stream = C.partition_consumer_stream(pc.wrapper, offsetPtr, errPtr)
+	} else {
+		stream = C.partition_consumer_stream_with_config(pc.wrapper, offsetPtr, config.wrapper, errPtr)
+	}
 	if errPtr.msg != nil {
 		return nil, NewFluvioError(C.GoString(errPtr.msg))
 	}
@@ -75,4 +96,8 @@ func (pc *PartitionConsumer) Close() {
 
 func (pcs *PartitionConsumerStream) Close() {
 	C.partition_consumer_stream_free(pcs.wrapper)
+}
+
+func (c *ConsumerConfig) Close() {
+	C.consumer_config_free(c.wrapper)
 }

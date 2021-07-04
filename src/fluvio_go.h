@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef struct ConsumerConfigWrapper ConsumerConfigWrapper;
+
 typedef struct FluvioWrapper FluvioWrapper;
 
 typedef struct OffsetWrapper OffsetWrapper;
@@ -60,6 +62,11 @@ void topic_producer_send(struct TopicProducerWrapper *topic_ptr,
 
 void topic_producer_free(struct TopicProducerWrapper *topic_producer_ptr);
 
+struct ConsumerConfigWrapper *consumer_config_with_wasm_filter(const char *file_ptr,
+                                                               struct FluvioErrorWrapper *err_ptr);
+
+void consumer_config_free(struct ConsumerConfigWrapper *consumer_config_ptr);
+
 struct PartitionConsumerWrapper *fluvio_partition_consumer(struct FluvioWrapper *fluvio_ptr,
                                                            const char *topic_ptr,
                                                            int32_t partition,
@@ -70,6 +77,11 @@ void partition_consumer_free(struct PartitionConsumerWrapper *partition_consumer
 struct PartitionConsumerStream *partition_consumer_stream(struct PartitionConsumerWrapper *partition_consumer_ptr,
                                                           const struct OffsetWrapper *offset_ptr,
                                                           struct FluvioErrorWrapper *err_ptr);
+
+struct PartitionConsumerStream *partition_consumer_stream_with_config(struct PartitionConsumerWrapper *partition_consumer_ptr,
+                                                                      const struct OffsetWrapper *offset_ptr,
+                                                                      const struct ConsumerConfigWrapper *config_ptr,
+                                                                      struct FluvioErrorWrapper *err_ptr);
 
 struct RecordWrapper *partition_consumer_stream_next(struct PartitionConsumerStream *stream_ptr,
                                                      struct FluvioErrorWrapper *err_ptr);

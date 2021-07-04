@@ -54,6 +54,33 @@ func main()  {
 }
 ```
 
+## Smart Streams
+### Filter
+Check the [example](example/smart_stream.go) for the full usage.
+```go
+package main
+
+import "fmt"
+import "github.com/avinassh/fluvio-go/fluvio"
+
+func main()  {
+	// error handling is omitted for brevity
+	fluvioClient, _ := fluvio.Connect()
+	defer fluvioClient.Close()
+	wasmFile := "example/filter.wasm"
+	config, _ := fluvioClient.ConsumerConfigWithWasmFilter(wasmFile)
+	defer config.Close()
+	partitionConsumer, _ := fluvioClient.PartitionConsumer("echo", 0)
+	defer partitionConsumer.Close()
+	stream, _ := partitionConsumer.StreamWithConfig(fluvio.NewOffsetFromBeginning(0), config)
+	defer stream.Close()
+	for {
+		r, _ := stream.Next()
+		fmt.Printf("Got record: key=%s, value=%s\n", string(r.Key), string(r.Value))
+	}
+}
+```
+
 ## License
 The MIT license. Please check `LICENSE` for more details.
 

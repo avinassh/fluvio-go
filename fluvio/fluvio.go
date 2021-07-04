@@ -25,6 +25,10 @@ type PartitionConsumerStream struct {
 	wrapper *C.PartitionConsumerStream
 }
 
+type ConsumerConfig struct {
+	wrapper *C.ConsumerConfigWrapper
+}
+
 func Connect() (*Fluvio, error) {
 	errPtr := C.fluvio_error_new()
 	defer C.fluvio_error_free(errPtr)

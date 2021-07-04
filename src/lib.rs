@@ -5,7 +5,7 @@ use std::pin::Pin;
 use std::slice;
 
 use fluvio::consumer::Record;
-use fluvio::{Fluvio, FluvioError, Offset, PartitionConsumer, TopicProducer};
+use fluvio::{ConsumerConfig, Fluvio, FluvioError, Offset, PartitionConsumer, TopicProducer};
 use fluvio_future::io::{Stream, StreamExt};
 use fluvio_future::task::run_block_on;
 use libc::{c_char, size_t};
@@ -198,6 +198,21 @@ impl PartitionConsumerStream {
     }
 }
 
+pub struct ConsumerConfigWrapper {
+    wasm_module: Vec<u8>,
+}
+
+impl ConsumerConfigWrapper {
+    fn new_config_with_wasm_filter(file: &str) -> Result<ConsumerConfigWrapper, std::io::Error> {
+        match std::fs::read(file) {
+            Ok(buffer) => Ok(ConsumerConfigWrapper {
+                wasm_module: buffer,
+            }),
+            Err(err) => Err(err),
+        }
+    }
+}
+
 pub struct PartitionConsumerWrapper {
     inner: PartitionConsumer,
 }
@@ -208,11 +223,31 @@ impl PartitionConsumerWrapper {
     }
 
     fn stream(&self, offset: &OffsetWrapper) -> Result<PartitionConsumerStream, FluvioError> {
-        match run_block_on(self.inner.stream(offset.inner.clone())) {
-            Ok(stream) => Ok(PartitionConsumerStream {
-                inner: Box::pin(stream),
-            }),
-            Err(e) => Err(e),
+        return self.stream_with_config(offset, None);
+    }
+
+    fn stream_with_config(
+        &self,
+        offset: &OffsetWrapper,
+        config_wrapper: Option<&ConsumerConfigWrapper>,
+    ) -> Result<PartitionConsumerStream, FluvioError> {
+        match config_wrapper {
+            Some(config_wrapper) => {
+                let config =
+                    ConsumerConfig::default().with_wasm_filter(config_wrapper.wasm_module.clone());
+                match run_block_on(self.inner.stream_with_config(offset.inner.clone(), config)) {
+                    Ok(stream) => Ok(PartitionConsumerStream {
+                        inner: Box::pin(stream),
+                    }),
+                    Err(e) => Err(e),
+                }
+            }
+            None => match run_block_on(self.inner.stream(offset.inner.clone())) {
+                Ok(stream) => Ok(PartitionConsumerStream {
+                    inner: Box::pin(stream),
+                }),
+                Err(e) => Err(e),
+            },
         }
     }
 }
@@ -349,6 +384,37 @@ pub extern "C" fn topic_producer_free(topic_producer_ptr: *mut TopicProducerWrap
 }
 
 #[no_mangle]
+pub extern "C" fn consumer_config_with_wasm_filter(
+    file_ptr: *const c_char,
+    err_ptr: *mut FluvioErrorWrapper,
+) -> *mut ConsumerConfigWrapper {
+    let file: &str = unsafe {
+        assert!(!file_ptr.is_null());
+        CStr::from_ptr(file_ptr).to_str().unwrap()
+    };
+    match ConsumerConfigWrapper::new_config_with_wasm_filter(file) {
+        Ok(config) => Box::into_raw(Box::new(config)),
+        Err(read_err) => {
+            let err = unsafe {
+                assert!(!err_ptr.is_null());
+                &mut *err_ptr
+            };
+            err.msg = CString::new(read_err.to_string()).unwrap().into_raw();
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn consumer_config_free(consumer_config_ptr: *mut ConsumerConfigWrapper) {
+    if !consumer_config_ptr.is_null() {
+        unsafe {
+            Box::from_raw(consumer_config_ptr);
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn fluvio_partition_consumer(
     fluvio_ptr: *mut FluvioWrapper,
     topic_ptr: *const c_char,
@@ -402,6 +468,39 @@ pub extern "C" fn partition_consumer_stream(
         &*offset_ptr
     };
     match partition_consumer.stream(offset) {
+        Ok(stream) => Box::into_raw(Box::new(stream)),
+        Err(fluvio_error) => {
+            let err = unsafe {
+                assert!(!err_ptr.is_null());
+                &mut *err_ptr
+            };
+            err.msg = CString::new(fluvio_error.to_string()).unwrap().into_raw();
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn partition_consumer_stream_with_config(
+    partition_consumer_ptr: *mut PartitionConsumerWrapper,
+    offset_ptr: *const OffsetWrapper,
+    config_ptr: *const ConsumerConfigWrapper,
+    err_ptr: *mut FluvioErrorWrapper,
+) -> *mut PartitionConsumerStream {
+    let partition_consumer: &mut PartitionConsumerWrapper = unsafe {
+        assert!(!partition_consumer_ptr.is_null());
+        &mut *partition_consumer_ptr
+    };
+    let offset: &OffsetWrapper = unsafe {
+        assert!(!offset_ptr.is_null());
+        &*offset_ptr
+    };
+    let config: &ConsumerConfigWrapper = unsafe {
+        assert!(!config_ptr.is_null());
+        &*config_ptr
+    };
+
+    match partition_consumer.stream_with_config(offset, Some(config)) {
         Ok(stream) => Box::into_raw(Box::new(stream)),
         Err(fluvio_error) => {
             let err = unsafe {
