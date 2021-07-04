@@ -223,25 +223,31 @@ impl PartitionConsumerWrapper {
     }
 
     fn stream(&self, offset: &OffsetWrapper) -> Result<PartitionConsumerStream, FluvioError> {
-        match run_block_on(self.inner.stream(offset.inner.clone())) {
-            Ok(stream) => Ok(PartitionConsumerStream {
-                inner: Box::pin(stream),
-            }),
-            Err(e) => Err(e),
-        }
+        return self.stream_with_config(offset, None);
     }
 
     fn stream_with_config(
         &self,
         offset: &OffsetWrapper,
-        config_wrapper: &ConsumerConfigWrapper,
+        config_wrapper: Option<&ConsumerConfigWrapper>,
     ) -> Result<PartitionConsumerStream, FluvioError> {
-        let config = ConsumerConfig::default().with_wasm_filter(config_wrapper.wasm_module.clone());
-        match run_block_on(self.inner.stream_with_config(offset.inner.clone(), config)) {
-            Ok(stream) => Ok(PartitionConsumerStream {
-                inner: Box::pin(stream),
-            }),
-            Err(e) => Err(e),
+        match config_wrapper {
+            Some(config_wrapper) => {
+                let config =
+                    ConsumerConfig::default().with_wasm_filter(config_wrapper.wasm_module.clone());
+                match run_block_on(self.inner.stream_with_config(offset.inner.clone(), config)) {
+                    Ok(stream) => Ok(PartitionConsumerStream {
+                        inner: Box::pin(stream),
+                    }),
+                    Err(e) => Err(e),
+                }
+            }
+            None => match run_block_on(self.inner.stream(offset.inner.clone())) {
+                Ok(stream) => Ok(PartitionConsumerStream {
+                    inner: Box::pin(stream),
+                }),
+                Err(e) => Err(e),
+            },
         }
     }
 }
@@ -493,7 +499,8 @@ pub extern "C" fn partition_consumer_stream_with_config(
         assert!(!config_ptr.is_null());
         &*config_ptr
     };
-    match partition_consumer.stream_with_config(offset, config) {
+
+    match partition_consumer.stream_with_config(offset, Some(config)) {
         Ok(stream) => Box::into_raw(Box::new(stream)),
         Err(fluvio_error) => {
             let err = unsafe {
