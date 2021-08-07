@@ -233,8 +233,9 @@ impl PartitionConsumerWrapper {
     ) -> Result<PartitionConsumerStream, FluvioError> {
         match config_wrapper {
             Some(config_wrapper) => {
-                let config =
-                    ConsumerConfig::default().with_wasm_filter(config_wrapper.wasm_module.clone());
+                let mut builder = ConsumerConfig::builder();
+                builder.wasm_filter(config_wrapper.wasm_module.clone());
+                let config = builder.build().unwrap();
                 match run_block_on(self.inner.stream_with_config(offset.inner.clone(), config)) {
                     Ok(stream) => Ok(PartitionConsumerStream {
                         inner: Box::pin(stream),
